@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           disableTransitionOnChange
         >
           <SiteHeader />
-          <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12">
+          <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:py-14">
             {children}
           </main>
           <SiteFooter />

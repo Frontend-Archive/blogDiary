@@ -10,7 +10,7 @@ export function ThemeToggle() {
       type="button"
       aria-label="테마 전환"
       title="테마 전환"
-      className="border-border hover:bg-foreground/5 inline-flex size-9 cursor-pointer items-center justify-center rounded-md border transition-colors"
+      className="border-rule hover:border-rule-strong hover:text-ribbon text-ink-soft inline-flex size-9 cursor-pointer items-center justify-center rounded-md border transition-colors"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       {/* 아이콘 전환은 CSS로만 처리해 하이드레이션 불일치를 피합니다. */}

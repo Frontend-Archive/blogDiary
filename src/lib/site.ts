@@ -1,13 +1,10 @@
 export const siteConfig = {
   name: "blogDiary",
   title: "blogDiary",
-  description: "개발 기록과 일상을 남기는 블로그",
+  tagline: "흩어진 블로그 글을, 날짜별 다이어리로",
+  description:
+    "여러 블로그의 글을 날짜별로 모아 다이어리처럼 넘겨보는 아카이브.",
   url: "https://example.com",
-  nav: [
-    { href: "/", label: "홈" },
-    { href: "/posts", label: "글" },
-    { href: "/about", label: "소개" },
-  ],
 } as const;
 
 export type SiteConfig = typeof siteConfig;

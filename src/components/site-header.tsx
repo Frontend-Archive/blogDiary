@@ -1,30 +1,22 @@
 import Link from "next/link";
 
-import { siteConfig } from "@/lib/site";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { siteConfig } from "@/lib/site";
 
 export function SiteHeader() {
   return (
-    <header className="border-border bg-background/80 sticky top-0 z-40 border-b backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between px-5">
-        <Link href="/" className="font-semibold tracking-tight">
-          {siteConfig.name}
+    <header className="border-rule bg-paper/85 sticky top-0 z-40 border-b backdrop-blur">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-5">
+        <Link href="/" className="flex items-baseline gap-2">
+          <span className="font-serif text-lg tracking-tight">
+            {siteConfig.name}
+          </span>
+          <span className="text-ink-muted hidden text-xs sm:inline">
+            {siteConfig.tagline}
+          </span>
         </Link>
 
-        <div className="flex items-center gap-1">
-          <nav className="flex items-center gap-1">
-            {siteConfig.nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-muted hover:text-foreground rounded-md px-2 py-1 text-sm transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <ThemeToggle />
-        </div>
+        <ThemeToggle />
       </div>
     </header>
   );
