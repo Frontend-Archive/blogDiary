@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude 가 대화로 보낸 스크린샷 등 (프로젝트 자산 아님)
+/Claude outputs/
