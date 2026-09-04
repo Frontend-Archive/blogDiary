@@ -1,10 +1,11 @@
 export const siteConfig = {
   name: "blogDiary",
   title: "blogDiary",
-  tagline: "흩어진 블로그 글을, 날짜별 다이어리로",
+  tagline: "스터디에서 나눈 글을, 회차별 다이어리로",
   description:
-    "여러 블로그의 글을 날짜별로 모아 다이어리처럼 넘겨보는 아카이브.",
+    "Frontend-Archive 스터디의 회차별 발표 아티클을 날짜순으로 모아 다이어리처럼 넘겨봅니다.",
   url: "https://example.com",
+  repoUrl: "https://github.com/Frontend-Archive/archive",
 } as const;
 
 export type SiteConfig = typeof siteConfig;

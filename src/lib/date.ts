@@ -29,21 +29,6 @@ export function formatShortDate(date: string): string {
   return `${Number(month)}.${day} (${weekday})`;
 }
 
-/**
- * ISO 문자열 -> "09:12"
- * 서버와 브라우저의 타임존이 달라도 같은 값이 나오도록 KST로 고정합니다.
- */
-const timeFormatter = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-  timeZone: "Asia/Seoul",
-});
-
-export function formatTime(iso: string): string {
-  return timeFormatter.format(new Date(iso));
-}
-
 /** "2026-09" -> "2026년 9월" */
 export function formatMonthLabel(ym: string): string {
   const [year, month] = ym.split("-");

@@ -16,7 +16,17 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <a
+            href={siteConfig.repoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-ink-muted hover:text-ink rounded-md px-2 py-1 text-xs transition-colors"
+          >
+            원본 레포
+          </a>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

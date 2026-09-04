@@ -18,19 +18,24 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
+    // suppressHydrationWarning 은 한 단계만 적용되므로 html/body 둘 다 붙인다.
+    // 브라우저 확장이 <body> 에 style 을 끼워 넣는 경우가 흔해 그걸로 하이드레이션 경고가 뜬다.
     <html lang="ko" suppressHydrationWarning className="h-full">
-      <body className="flex min-h-full flex-col font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SiteHeader />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:py-14">
+      <body
+        suppressHydrationWarning
+        className="flex min-h-full flex-col font-sans antialiased"
+      >
+        <ThemeProvider>
+          {/* 모바일에서는 화면 전체가 공책이라 머리말·꼬리말을 두지 않는다. */}
+          <div className="hidden lg:block">
+            <SiteHeader />
+          </div>
+          <main className="mx-auto w-full max-w-6xl flex-1 lg:px-5 lg:py-10">
             {children}
           </main>
-          <SiteFooter />
+          <div className="hidden lg:block">
+            <SiteFooter />
+          </div>
         </ThemeProvider>
       </body>
     </html>

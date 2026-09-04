@@ -1,9 +1,38 @@
 @import "tailwindcss";
 
-/* next-themes가 <html>에 붙이는 .dark 클래스를 Tailwind v4의 dark: 변형과 연결 */
-@custom-variant dark (&:where(.dark, .dark *));
+/* 손글씨체 (한글 음절 전체 서브셋) */
+@font-face {
+  font-family: "Nanum Pen";
+  src: url("/fonts/nanum-pen-kr.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * 다크모드는 CSS가 먼저 처리한다.
+ * - 표시가 없으면 OS 설정을 따르고
+ * - 사용자가 직접 고르면 <html data-theme="light|dark"> 가 덮어쓴다.
+ * 첫 페인트부터 색이 맞아떨어지므로 화면을 미리 칠하는 스크립트가 필요 없다.
+ * light-dark() 같은 최신 문법에 기대지 않고 셋 다 명시해 어느 브라우저에서나 같게 나오게 한다.
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(
+      :root:not([data-theme="light"]),
+      :root:not([data-theme="light"]) *
+    ) {
+      @slot;
+    }
+  }
+}
 
 :root {
+  color-scheme: light;
+
   /* 종이 */
   --paper: #faf7f0;
   --paper-edge: #f2ece0;
@@ -23,7 +52,29 @@
   --ribbon-soft: #c98a7f;
 }
 
-.dark {
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --paper: #14120f;
+    --paper-edge: #1b1815;
+    --paper-shadow: rgba(0, 0, 0, 0.5);
+
+    --ink: #ece5d9;
+    --ink-soft: #b9b0a3;
+    --ink-muted: #8a8175;
+
+    --rule: #2b2721;
+    --rule-strong: #3a352d;
+
+    --ribbon: #d98a70;
+    --ribbon-soft: #8a5346;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
   --paper: #14120f;
   --paper-edge: #1b1815;
   --paper-shadow: rgba(0, 0, 0, 0.5);
@@ -60,6 +111,7 @@
   --font-mono:
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
     monospace;
+  --font-hand: "Nanum Pen", var(--font-sans);
 }
 
 html {
@@ -110,14 +162,230 @@ body {
   background: color-mix(in srgb, var(--ribbon) 22%, transparent);
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+/*
+ * 스크롤바는 데스크톱에서만 다듬는다.
+ * 이 규칙을 모든 화면에 걸면 모바일에서 겹쳐 뜨던 얇은 스크롤바가
+ * 자리를 차지하는 굵은 막대로 바뀌어 지면이 지저분해진다.
+ */
+@media (min-width: 1024px) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--rule-strong);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
-::-webkit-scrollbar-thumb {
-  background: var(--rule-strong);
-  border-radius: 999px;
+
+/*
+ * 형광펜으로 그은 자국.
+ * 글자 아래쪽만 덮어 종이에 마커를 슥 그은 것처럼 보이게 한다.
+ */
+.marker {
+  padding-inline: 0.15em;
+  /* 줄 아래쪽에만 얇게 깔아 글자 위를 덮지 않는다 */
+  background-image: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--ribbon) 20%, transparent) 0.34em,
+    transparent 0.34em
+  );
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+
+/* 모바일 책에서는 스크롤바를 감춘다. 스크롤은 그대로 된다. */
+@media (max-width: 1023px) {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 책 넘기기
+ * 지면 한 장이 왼쪽 모서리를 축으로 돌아가고, 그 아래에서 다음 장이 드러난다.
+ * 뒤로 넘기기는 같은 키프레임을 거꾸로 재생한다.
+ * ------------------------------------------------------------------ */
+
+.book-stage {
+  position: relative;
+  perspective: 1200px;
+  --flip-ms: 700ms;
+  --flip-ease: linear;
+}
+
+.book-sheet,
+.book-leaf {
+  position: absolute;
+  inset: 0;
+}
+
+.book-leaf {
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  will-change: transform;
+  z-index: 2;
+}
+
+.book-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  box-shadow: 0 0 28px rgba(0, 0, 0, 0.22);
+}
+
+.book-face-back {
+  transform: rotateY(180deg);
+  background-color: var(--paper-edge);
+}
+
+/* 종이에 지는 음영. 돌아갈수록 어두워진다. */
+.book-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.book-shade-front {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 20%,
+    rgba(0, 0, 0, 0.32) 100%
+  );
+  opacity: 0;
+}
+
+.book-shade-back {
+  background: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0) 30%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+  opacity: 0.45;
+}
+
+/*
+ * 넘기는 장은 왼쪽 모서리가 축이라, 90도를 넘어가면 화면 밖(축의 왼쪽)으로 사라진다.
+ * 그래서 눈에 보이는 0~90도 구간에 시간의 4분의 3을 쓴다.
+ */
+@keyframes leaf-turn {
+  0% {
+    transform: rotateY(0deg);
+  }
+  20% {
+    transform: rotateY(-15deg);
+  }
+  45% {
+    transform: rotateY(-42deg);
+  }
+  70% {
+    transform: rotateY(-72deg);
+  }
+  85% {
+    transform: rotateY(-90deg);
+  }
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+
+@keyframes shade-front {
+  0% {
+    opacity: 0;
+  }
+  85% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes shade-back {
+  0% {
+    opacity: 0.55;
+  }
+  85% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+/* 아래 지면에 드리우는 그림자 */
+@keyframes sheet-shadow {
+  0% {
+    opacity: 0.5;
+  }
+  85% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.book-shadow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.5),
+    rgba(0, 0, 0, 0) 60%
+  );
+}
+
+.book-leaf-forward {
+  animation: leaf-turn var(--flip-ms) var(--flip-ease) forwards;
+}
+
+.book-leaf-backward {
+  animation: leaf-turn var(--flip-ms) var(--flip-ease) reverse forwards;
+}
+
+.book-leaf-forward .book-shade-front {
+  animation: shade-front var(--flip-ms) var(--flip-ease) forwards;
+}
+.book-leaf-forward .book-shade-back {
+  animation: shade-back var(--flip-ms) var(--flip-ease) forwards;
+}
+.book-leaf-backward .book-shade-front {
+  animation: shade-front var(--flip-ms) var(--flip-ease) reverse forwards;
+}
+.book-leaf-backward .book-shade-back {
+  animation: shade-back var(--flip-ms) var(--flip-ease) reverse forwards;
+}
+
+.book-sheet-forward .book-shadow {
+  animation: sheet-shadow var(--flip-ms) ease-out forwards;
+}
+.book-sheet-backward .book-shadow {
+  animation: sheet-shadow var(--flip-ms) ease-out reverse forwards;
+}
+
+/* 책이 화면을 덮는 동안에는 뒤가 스크롤되지 않게 한다 */
+@media (max-width: 1023px) {
+  body:has([data-book-fullscreen]) {
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-leaf-forward,
+  .book-leaf-backward,
+  .book-shade,
+  .book-shadow {
+    animation: none;
+  }
 }
