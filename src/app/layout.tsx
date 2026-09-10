@@ -26,10 +26,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         className="flex min-h-full flex-col font-sans antialiased"
       >
         <ThemeProvider>
-          {/* 모바일에서는 화면 전체가 공책이라 머리말·꼬리말을 두지 않는다. */}
-          <div className="hidden lg:block">
-            <SiteHeader />
-          </div>
+          {/*
+           * 모바일에서는 화면 전체가 공책이라 머리말·꼬리말을 두지 않는다.
+           * 머리말은 sticky 라서 감싸는 요소 없이 둔다. div 로 감싸면 그 div
+           * (= 머리말 한 줄 높이) 안에서만 붙어 있어 스크롤하자마자 밀려 올라간다.
+           */}
+          <SiteHeader />
           <main className="mx-auto w-full max-w-6xl flex-1 lg:px-5 lg:py-10">
             {children}
           </main>

@@ -5,7 +5,9 @@ import { siteConfig } from "@/lib/site";
 
 export function SiteHeader() {
   return (
-    <header className="border-rule bg-paper/85 sticky top-0 z-40 border-b backdrop-blur">
+    // 모바일에서는 머리말을 두지 않는다. sticky 가 <body> 를 기준으로 붙어야 해서
+    // 감싸는 div 대신 이 요소가 직접 화면 크기를 가린다.
+    <header className="border-rule bg-paper/85 sticky top-0 z-40 hidden shrink-0 border-b backdrop-blur lg:block">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-5">
         <Link href="/" className="flex items-baseline gap-2">
           <span className="font-serif text-lg tracking-tight">
