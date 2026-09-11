@@ -1,7 +1,6 @@
+import { ArchiveBoard } from "@/components/archive-board";
 import { BookReader } from "@/components/book/book-reader";
-import { BookmarkRail } from "@/components/bookmark/bookmark-rail";
-import { DiaryPage } from "@/components/diary-page";
-import { groupByYear, summarize } from "@/lib/archive/select";
+import { summarize } from "@/lib/archive/select";
 import { loadArchives } from "@/lib/archive/load";
 import { formatShortDate } from "@/lib/date";
 import { siteConfig } from "@/lib/site";
@@ -13,7 +12,6 @@ export const revalidate = 3600;
 export default async function Home() {
   const { archives, failures, error } = await loadArchives();
   const stats = summarize(archives);
-  const years = groupByYear(archives);
 
   return (
     <>
@@ -28,11 +26,15 @@ export default async function Home() {
           <h1 className="font-serif text-3xl tracking-tight sm:text-4xl">
             {siteConfig.tagline}
           </h1>
-          <p className="text-ink-soft mt-3 max-w-xl leading-7">
+          {/*
+           * 폭을 따로 좁히지 않는다. max-w 를 걸면 한 줄짜리 소개가 중간에서 접힌다.
+           * break-keep 은 그래도 접혀야 할 때 한국어를 단어 단위로 끊기 위한 것.
+           */}
+          <p className="text-ink-soft mt-3 leading-7 break-keep">
             {siteConfig.description}
           </p>
           <p className="text-ink-muted mt-4 text-xs">
-            {stats.sessions}회차 · 글 {stats.filled}편 / {stats.slots}칸
+            {stats.sessions}회차 · 글 {stats.filled}편
             {stats.from && stats.to ? (
               <>
                 {" · "}
@@ -50,23 +52,8 @@ export default async function Home() {
           </Notice>
         ) : null}
 
-        <div className="grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12">
-          <aside className="min-w-0">
-            <BookmarkRail years={years} />
-          </aside>
-
-          <div className="min-w-0 space-y-8">
-            {archives.map((archive) => (
-              <DiaryPage key={archive.id} archive={archive} />
-            ))}
-
-            {archives.length === 0 && !error ? (
-              <p className="text-ink-muted border-rule rounded-lg border border-dashed p-8 text-center text-sm">
-                아직 기록된 회차가 없습니다.
-              </p>
-            ) : null}
-          </div>
-        </div>
+        {/* 태그 필터가 책갈피와 지면을 함께 바꾸므로 한 덩어리로 넘긴다 */}
+        {error ? null : <ArchiveBoard archives={archives} />}
       </div>
     </>
   );

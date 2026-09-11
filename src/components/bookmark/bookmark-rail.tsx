@@ -8,7 +8,14 @@ import {
 import type { YearGroup } from "@/lib/archive/select";
 
 /** 데스크톱: 지면 옆에 붙어 따라오는 세로 목차 */
-export function BookmarkRail({ years }: { years: YearGroup[] }) {
+export function BookmarkRail({
+  years,
+  filtered = false,
+}: {
+  years: YearGroup[];
+  /** 태그로 걸러낸 목록인지 */
+  filtered?: boolean;
+}) {
   const activeDate = useActiveDate(collectDates(years));
 
   if (years.length === 0) return null;
@@ -21,7 +28,7 @@ export function BookmarkRail({ years }: { years: YearGroup[] }) {
       className="sticky top-24 max-h-[calc(100svh-7rem)] overflow-y-auto overscroll-contain pr-1"
     >
       <h2 className="text-ink-muted mb-4 text-xs tracking-[0.08em]">책갈피</h2>
-      <BookmarkList years={years} activeDate={activeDate} />
+      <BookmarkList years={years} activeDate={activeDate} filtered={filtered} />
     </nav>
   );
 }

@@ -1,7 +1,17 @@
+"use client";
+
 import type { Article } from "@/lib/archive/types";
 
 /** 글이 올라온 항목만 그린다. 미작성 자리는 지면 아래에 이름만 모아 둔다. */
-export function ArticleEntry({ article }: { article: Article }) {
+export function ArticleEntry({
+  article,
+  activeTags,
+  onSelectTag,
+}: {
+  article: Article;
+  activeTags: string[];
+  onSelectTag: (tag: string) => void;
+}) {
   return (
     <li className="py-3">
       <p className="leading-7 break-keep">
@@ -21,11 +31,26 @@ export function ArticleEntry({ article }: { article: Article }) {
         </span>
       </p>
 
-      <p className="text-ink-muted mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-        {article.tags.map((tag) => (
-          <span key={tag}>#{tag}</span>
-        ))}
-      </p>
+      {article.tags.length > 0 ? (
+        // 모바일 지면과 같은 형광펜(.marker) 자국. 누르면 그 태그로 걸러진다.
+        <p className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs leading-none">
+          {article.tags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              aria-pressed={activeTags.includes(tag)}
+              onClick={() => onSelectTag(tag)}
+              className={`marker rounded-xs transition-colors ${
+                activeTags.includes(tag)
+                  ? "text-ribbon"
+                  : "text-ink-muted hover:text-ink"
+              }`}
+            >
+              #{tag}
+            </button>
+          ))}
+        </p>
+      ) : null}
     </li>
   );
 }

@@ -1,10 +1,20 @@
+"use client";
+
 import { ArticleEntry } from "@/components/article-entry";
 import { isFilled } from "@/lib/archive/types";
 import type { Archive } from "@/lib/archive/types";
 import { formatFullDate, splitDate } from "@/lib/date";
 
 /** 다이어리의 한 면 = 스터디 한 회차 */
-export function DiaryPage({ archive }: { archive: Archive }) {
+export function DiaryPage({
+  archive,
+  activeTags,
+  onSelectTag,
+}: {
+  archive: Archive;
+  activeTags: string[];
+  onSelectTag: (tag: string) => void;
+}) {
   const { year, month, day, weekday } = splitDate(archive.date);
   const written = archive.articles.filter(isFilled);
   const missing = archive.articles
@@ -34,7 +44,9 @@ export function DiaryPage({ archive }: { archive: Archive }) {
           </span>
           <span className="text-ribbon text-sm">{weekday}</span>
           <span className="text-ink-muted ml-auto text-xs tabular-nums">
-            {written.length}/{archive.articles.length}
+            {activeTags.length > 0
+              ? `${written.length}편`
+              : `${written.length}/${archive.articles.length}`}
           </span>
         </div>
 
@@ -59,6 +71,8 @@ export function DiaryPage({ archive }: { archive: Archive }) {
             <ArticleEntry
               key={`${archive.id}-${article.author || index}`}
               article={article}
+              activeTags={activeTags}
+              onSelectTag={onSelectTag}
             />
           ))}
         </ul>

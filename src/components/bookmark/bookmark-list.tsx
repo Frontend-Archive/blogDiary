@@ -10,10 +10,13 @@ export function BookmarkList({
   years,
   activeDate,
   onSelect,
+  filtered = false,
 }: {
   years: YearGroup[];
   activeDate: string | null;
   onSelect?: () => void;
+  /** 태그로 걸러낸 목록인지. 걸러냈다면 '몇 칸 중 몇 편'이 뜻을 잃는다. */
+  filtered?: boolean;
 }) {
   return (
     <>
@@ -29,6 +32,7 @@ export function BookmarkList({
                   session={session}
                   active={session.date === activeDate}
                   onSelect={onSelect}
+                  filtered={filtered}
                 />
               </li>
             ))}
@@ -43,10 +47,12 @@ function BookmarkTab({
   session,
   active,
   onSelect,
+  filtered,
 }: {
   session: Session;
   active: boolean;
   onSelect?: () => void;
+  filtered: boolean;
 }) {
   const { month, day, weekday } = splitDate(session.date);
 
@@ -68,7 +74,9 @@ function BookmarkTab({
         {Number(month)}.{day} ({weekday})
       </span>
       <span className="text-ink-muted ml-auto text-xs tabular-nums">
-        {session.filled}/{session.total}
+        {filtered
+          ? `${session.filled}편`
+          : `${session.filled}/${session.total}`}
       </span>
     </a>
   );
