@@ -4,6 +4,19 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useTheme } from "@/components/theme-provider";
+import { useSfx } from "@/hooks/use-sfx";
+
+/*
+ * 잉크가 떨어지는 소리. 원본(water_drop_sound.wav)에서 소리가 나는 앞 0.22초만 남기고
+ * 정규화(+4.4dB)한 것. 뒤쪽 0.3초는 전부 무음이었다.
+ *
+ * AAC 로 옮기지 않고 WAV 로 둔다. 디코더 프라이밍 때문에 앞에 ~50ms 가 붙는데,
+ * 0.2초짜리 '똑' 소리에서는 그 지연이 눌린 순간과 어긋나 보인다.
+ */
+const DROP_SOUND = "/sound/water-drop.wav";
+
+/** 넘김 소리와 비슷한 결로. 약 -20dB. */
+const DROP_VOLUME = 0.1;
 
 /**
  * 테마 전환 버튼.
@@ -16,8 +29,15 @@ import { useTheme } from "@/components/theme-provider";
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const [aiming, setAiming] = useState(false);
+  const playDrop = useSfx(DROP_SOUND, { volume: DROP_VOLUME });
 
   const next = resolvedTheme === "dark" ? "light" : "dark";
+
+  /** 잉크를 떨어뜨린다. 소리와 번짐이 같은 순간에 시작해야 한 동작으로 느껴진다. */
+  const drop = (x: number, y: number) => {
+    playDrop();
+    spill(x, y, next, setTheme);
+  };
 
   const canAnimate = () =>
     Boolean(document.startViewTransition) && !prefersReducedMotion();
@@ -36,7 +56,7 @@ export function ThemeToggle() {
     // 고르라고 해 봐야 고를 수단이 없으니 버튼 자리에서 바로 번지게 한다.
     if (event.detail === 0) {
       const box = event.currentTarget.getBoundingClientRect();
-      spill(box.left + box.width / 2, box.top + box.height / 2, next, setTheme);
+      drop(box.left + box.width / 2, box.top + box.height / 2);
       return;
     }
 
@@ -76,7 +96,7 @@ export function ThemeToggle() {
         <AimLayer
           onPick={(x, y) => {
             setAiming(false);
-            spill(x, y, next, setTheme);
+            drop(x, y);
           }}
           onCancel={() => setAiming(false)}
         />
