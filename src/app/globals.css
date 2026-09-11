@@ -403,3 +403,96 @@ body {
     animation: none;
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * 테마 전환: 종이에 잉크가 스미듯
+ *
+ * View Transitions 가 바뀌기 전/후 화면을 한 장씩 찍어 주면,
+ * 새 화면을 마스크로 가려 두고 그 구멍을 눌린 자리에서부터 넓힌다.
+ * 마스크 가장자리를 뭉개 놔서 원이 커지는 게 아니라 번지는 것처럼 보인다.
+ *
+ * --ink-x / --ink-y 는 누른 버튼의 한가운데(theme-toggle.tsx 가 넣어 준다).
+ * 지원하지 않는 브라우저에서는 이 블록이 통째로 무시되고 그냥 즉시 바뀐다.
+ * ------------------------------------------------------------------ */
+
+/*
+ * 그라데이션 색 위치는 원래 애니메이션 대상이 아니다.
+ * @property 로 타입을 알려 줘야 브라우저가 그 사이를 이어서 그린다.
+ *
+ * --ink-spread  자국이 퍼진 거리
+ * --ink-feather 자국 가장자리가 풀어진 폭. 퍼질수록 함께 넓어진다.
+ */
+@property --ink-spread {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --ink-feather {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  /* 기본 크로스페이드를 끈다. 겹쳐서 흐려지면 번지는 맛이 죽는다. */
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 옛 테마는 바닥에 그대로 깔아 두고 그 위로 새 테마가 번지게 한다 */
+::view-transition-old(root) {
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+  /* 진한 가운데에서 투명한 바깥으로. 그 사이가 번져 나가는 자국이 된다. */
+  mask-image: radial-gradient(
+    circle at var(--ink-x, 50%) var(--ink-y, 50%),
+    #000 calc(var(--ink-spread) - var(--ink-feather)),
+    transparent var(--ink-spread)
+  );
+  mask-repeat: no-repeat;
+  /*
+   * 물방울이 떨어지는 결.
+   * 닿는 순간이 제일 빠르고 그 뒤로는 스며들 듯 느려져야 한다.
+   * 앞이 느리고 중간에 튀는 곡선(ease-in-out 류)을 쓰면 '뜸 들이다 훅' 하고 튀어
+   * 방울이 아니라 셔터가 열리는 것처럼 보인다. 그래서 시작 속도를 최대로 둔다.
+   */
+  animation:
+    ink-drop 1000ms cubic-bezier(0.2, 0.75, 0.5, 1) forwards,
+    ink-soak 1000ms ease-out forwards;
+}
+
+/*
+ * 118%에서 멈춘다. 자국 가장자리(18%)를 빼면 딱 100% — 화면에서 가장 먼 모서리다.
+ * 더 벌리면 진작 다 덮어 놓고 애니메이션만 남아 돌아, 멈춘 화면을 붙들고 있게 된다.
+ */
+@keyframes ink-drop {
+  from {
+    --ink-spread: 0%;
+  }
+  to {
+    --ink-spread: 118%;
+  }
+}
+
+/* 떨어진 직후엔 방울처럼 또렷하다가, 번져 나가며 가장자리가 풀린다 */
+@keyframes ink-soak {
+  from {
+    --ink-feather: 3%;
+  }
+  to {
+    --ink-feather: 22%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mask-image: none;
+  }
+}

@@ -88,6 +88,13 @@ function getServerSystemDark(): boolean {
   return false;
 }
 
+/** CSS가 OS 설정을 이미 따르고 있으므로, 사용자가 직접 고른 경우에만 표시를 남긴다. */
+function applyTheme(theme: Theme) {
+  const root = document.documentElement;
+  if (theme === "system") delete root.dataset.theme;
+  else root.dataset.theme = theme;
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = useSyncExternalStore(
     subscribeTheme,
@@ -103,16 +110,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const resolvedTheme: ResolvedTheme =
     theme === "system" ? (systemDark ? "dark" : "light") : theme;
 
-  // CSS가 OS 설정을 이미 따르고 있으므로, 사용자가 직접 고른 경우에만 표시를 남긴다.
+  // 처음 붙을 때와, 다른 탭에서 바뀌었을 때를 맞춘다.
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "system") {
-      delete root.dataset.theme;
-    } else {
-      root.dataset.theme = theme;
-    }
+    applyTheme(theme);
   }, [theme]);
 
+  /**
+   * 표시를 DOM에 먼저 박고 나서 구독자에게 알린다.
+   * 리렌더를 기다리면 View Transition 콜백이 끝날 때까지 색이 안 바뀌어,
+   * 전환 애니메이션이 '바뀌기 전' 화면만 두 장 찍게 된다.
+   */
   const setTheme = useCallback((next: Theme) => {
     memoryTheme = next;
     try {
@@ -120,6 +127,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } catch {
       // 저장에 실패해도 이번 세션에는 적용된다.
     }
+    applyTheme(next);
     notify();
   }, []);
 
