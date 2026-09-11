@@ -184,15 +184,29 @@ body {
 /*
  * 형광펜으로 그은 자국.
  * 글자 아래쪽만 덮어 종이에 마커를 슥 그은 것처럼 보이게 한다.
+ *
+ * 고른 태그와 아닌 태그는 --marker-ink(자국의 진하기)로만 가른다.
+ * 글자색까지 바꾸면 한 줄 안에서 글자가 울긋불긋해져 오히려 읽기 나빠진다.
  */
 .marker {
+  --marker-ink: 20%;
   padding-inline: 0.15em;
   /* 줄 아래쪽에만 얇게 깔아 글자 위를 덮지 않는다 */
   background-image: linear-gradient(
     to top,
-    color-mix(in srgb, var(--ribbon) 20%, transparent) 0.34em,
+    color-mix(in srgb, var(--ribbon) var(--marker-ink), transparent) 0.34em,
     transparent 0.34em
   );
+}
+
+/* 고르지 않은 태그: 있는 듯 없는 듯 옅게 깔아 둔다 */
+.marker-soft {
+  --marker-ink: 10%;
+}
+
+/* 고른 태그: 같은 자국을 꾹 눌러 그은 것처럼 진하게 */
+.marker-strong {
+  --marker-ink: 55%;
 }
 
 /* 모바일 책에서는 스크롤바를 감춘다. 스크롤은 그대로 된다. */

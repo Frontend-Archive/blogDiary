@@ -3,7 +3,14 @@ import type { Archive, Article } from "@/lib/archive/types";
 import { formatFullDate, splitDate } from "@/lib/date";
 
 /** 공책 한 면 = 스터디 한 회차 */
-export function NotebookPage({ archive }: { archive: Archive }) {
+export function NotebookPage({
+  archive,
+  activeTags,
+}: {
+  archive: Archive;
+  /** 목차에서 고른 태그. 이 지면이 왜 걸렸는지 자국으로 보여 준다. */
+  activeTags: string[];
+}) {
   const { year, month, day, weekday } = splitDate(archive.date);
   const written = archive.articles.filter(isFilled);
   const missing = archive.articles
@@ -62,6 +69,7 @@ export function NotebookPage({ archive }: { archive: Archive }) {
                 <NotebookLine
                   key={`${archive.id}-${article.author || index}`}
                   article={article}
+                  activeTags={activeTags}
                 />
               ))}
             </ul>
@@ -88,7 +96,13 @@ export function NotebookPage({ archive }: { archive: Archive }) {
 }
 
 /** 글이 올라온 항목만 그린다. 미작성 자리는 지면 아래에 이름만 모아 둔다. */
-function NotebookLine({ article }: { article: Article }) {
+function NotebookLine({
+  article,
+  activeTags,
+}: {
+  article: Article;
+  activeTags: string[];
+}) {
   return (
     <li>
       {/* 제목 뒤에 이름을 붙여 적는다. 줄이 모자라면 이름만 다음 줄로 넘어간다. */}
@@ -112,7 +126,12 @@ function NotebookLine({ article }: { article: Article }) {
       {article.tags.length > 0 ? (
         <p className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-2 text-base leading-none">
           {article.tags.map((tag) => (
-            <span key={tag} className="marker text-ink-muted">
+            <span
+              key={tag}
+              className={`marker text-ink-muted ${
+                activeTags.includes(tag) ? "marker-strong" : "marker-soft"
+              }`}
+            >
               #{tag}
             </span>
           ))}

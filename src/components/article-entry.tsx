@@ -40,10 +40,8 @@ export function ArticleEntry({
               type="button"
               aria-pressed={activeTags.includes(tag)}
               onClick={() => onSelectTag(tag)}
-              className={`marker rounded-xs transition-colors ${
-                activeTags.includes(tag)
-                  ? "text-ribbon"
-                  : "text-ink-muted hover:text-ink"
+              className={`marker text-ink-muted hover:text-ink rounded-xs transition-colors ${
+                activeTags.includes(tag) ? "marker-strong" : "marker-soft"
               }`}
             >
               #{tag}

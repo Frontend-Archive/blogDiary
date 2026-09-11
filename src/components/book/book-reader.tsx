@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ContentsPage } from "@/components/book/contents-page";
 import { NotebookPage } from "@/components/book/notebook-page";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { collectTags, filterByTags } from "@/lib/archive/tags";
 import type { Archive } from "@/lib/archive/types";
 
 const FLIP_MS = 700;
@@ -27,16 +28,45 @@ export function BookReader({
   archives: Archive[];
   initialIndex: number;
 }) {
-  const lastIndex = archives.length;
-  const [current, setCurrent] = useState(clamp(initialIndex, lastIndex));
+  // 목차 면에서 고른 태그. 책에 꽂히는 지면 자체가 이 결과로 바뀐다.
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const tags = useMemo(() => collectTags(archives), [archives]);
+  const pages = useMemo(
+    () => filterByTags(archives, activeTags),
+    [archives, activeTags],
+  );
+
+  const lastIndex = pages.length;
+  // 첫 렌더에는 고른 태그가 없어 pages 와 archives 가 같다. initialIndex 를 그대로 쓴다.
+  const [current, setCurrent] = useState(clamp(initialIndex, archives.length));
   const [flip, setFlip] = useState<FlipState | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   const hrefFor = useCallback(
-    (index: number) => (index === 0 ? "/" : `/p/${archives[index - 1].id}`),
-    [archives],
+    (index: number) => (index === 0 ? "/" : `/p/${pages[index - 1].id}`),
+    [pages],
   );
+
+  /**
+   * 태그를 바꾸면 꽂혀 있던 지면이 사라질 수 있어 목차로 되돌린다.
+   * 태그는 목차 면에서만 고를 수 있으니 실제로는 이미 목차에 있다.
+   */
+  const toggleTag = useCallback((tag: string) => {
+    setActiveTags((current) =>
+      current.includes(tag)
+        ? current.filter((item) => item !== tag)
+        : [...current, tag],
+    );
+    setFlip(null);
+    setCurrent(0);
+  }, []);
+
+  const clearTags = useCallback(() => {
+    setActiveTags([]);
+    setFlip(null);
+    setCurrent(0);
+  }, []);
 
   const goTo = useCallback(
     (target: number) => {
@@ -75,14 +105,14 @@ export function BookReader({
       const match = window.location.pathname.match(/^\/p\/(\d+)/);
       const id = match ? Number(match[1]) : null;
       const index =
-        id === null ? 0 : archives.findIndex((a) => a.id === id) + 1 || 0;
+        id === null ? 0 : pages.findIndex((a) => a.id === id) + 1 || 0;
       setFlip(null);
       setCurrent(clamp(index, lastIndex));
     };
 
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [archives, lastIndex]);
+  }, [pages, lastIndex]);
 
   // 키보드 좌우
   useEffect(() => {
@@ -115,9 +145,16 @@ export function BookReader({
 
   const renderPage = (index: number) =>
     index === 0 ? (
-      <ContentsPage archives={archives} onOpen={goTo} />
+      <ContentsPage
+        archives={pages}
+        onOpen={goTo}
+        tags={tags}
+        activeTags={activeTags}
+        onToggleTag={toggleTag}
+        onClearTags={clearTags}
+      />
     ) : (
-      <NotebookPage archive={archives[index - 1]} />
+      <NotebookPage archive={pages[index - 1]} activeTags={activeTags} />
     );
 
   const bottomIndex = flip ? (flip.dir === 1 ? flip.to : flip.from) : current;
