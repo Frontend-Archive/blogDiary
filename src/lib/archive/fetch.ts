@@ -31,7 +31,7 @@ function githubHeaders(): HeadersInit {
     "X-GitHub-Api-Version": "2022-11-28",
   };
 
-  // 인증 없이도 동작하지만(시간당 60회), 토큰이 있으면 넉넉해진다.
+  // 인증 없이도 동작하지만(시간당 60회), 토큰이 있으면 넉넉해진다. (현재는 토큰 없음)
   const token = process.env.GITHUB_TOKEN;
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -89,6 +89,7 @@ export interface FetchArchivesResult {
 /** 모든 회차를 1회차부터(오래된 순으로) 가져온다. */
 export async function fetchArchives(): Promise<FetchArchivesResult> {
   const files = await listArchiveFiles();
+
   const settled = await Promise.allSettled(files.map(fetchArchive));
 
   const archives: Archive[] = [];

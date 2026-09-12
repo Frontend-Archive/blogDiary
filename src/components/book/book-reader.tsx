@@ -43,7 +43,7 @@ export function BookReader({
   const [flip, setFlip] = useState<FlipState | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
-  const playPageTurn = usePageTurnSound();
+  const playPageTurnSound = usePageTurnSound();
 
   const hrefFor = useCallback(
     (index: number) => (index === 0 ? "/" : `/p/${pages[index - 1].id}`),
@@ -76,7 +76,7 @@ export function BookReader({
       if (flip || next === current) return;
 
       // 넘김이 확정된 뒤에 낸다. 끝 장에서 더 넘기려 한 경우에는 소리도 나지 않는다.
-      playPageTurn();
+      playPageTurnSound();
 
       const dir: 1 | -1 = next > current ? 1 : -1;
       window.history.pushState(null, "", hrefFor(next));
@@ -87,7 +87,7 @@ export function BookReader({
       }
       setFlip({ from: current, to: next, dir });
     },
-    [current, flip, hrefFor, lastIndex, playPageTurn],
+    [current, flip, hrefFor, lastIndex, playPageTurnSound],
   );
 
   const finishFlip = useCallback(() => {

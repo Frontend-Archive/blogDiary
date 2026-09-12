@@ -63,7 +63,13 @@ function normalizeDate(value: unknown): string | null {
   return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
 }
 
-/** 템플릿의 따옴표 누락(`'off-line`)까지 감안해 느슨하게 판정 */
+/*
+ * 값이 이상해도 화면이 안 깨지게 off-line 으로 떨어뜨린다.
+ * 오타, 빈 값, 그리고 값 안에 따옴표 문자가 남은 경우("'off-line'")까지 받아낸다.
+ *
+ * 다만 따옴표가 안 닫힌 경우(type: 'off-line)는 여기까지 오지 않는다.
+ * YAML 파서가 먼저 실패하므로 그 회차는 fetch 단계에서 통째로 빠진다.
+ */
 function normalizeType(value: unknown): MeetingType {
   const text = asString(value).replace(/^'|'$/g, "");
   return MEETING_TYPES.includes(text as MeetingType)
